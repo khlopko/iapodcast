@@ -28,6 +28,7 @@ type OpenAIResponse struct {
 }
 
 type OpenAiSummaryProvider struct {
+	promptProvider PromptProvider
 	apiKey *string
 }
 
@@ -48,11 +49,11 @@ func (self *OpenAiSummaryProvider) GenerateFromInput(input string) (string, erro
 		Messages: []ChatMessage{
 			{
 				Role: "system",
-				Content: p2,
+				Content: self.promptProvider.SystemPrompt(),
 			},
 			{
 				Role:    "user",
-				Content: fmt.Sprintf(u2, input),
+				Content: fmt.Sprintf(self.promptProvider.UserPrompt(), input),
 			},
 		},
 	}
@@ -94,3 +95,6 @@ func (self *OpenAiSummaryProvider) GenerateFromInput(input string) (string, erro
 	return response.Choices[0].Message.Content, nil
 }
 
+func (self *OpenAiSummaryProvider) String() string {
+	return fmt.Sprintf("openai-%s", self.promptProvider.String())
+}

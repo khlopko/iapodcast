@@ -11,6 +11,7 @@ import (
 )
 
 type AnthropicSummaryProvider struct {
+	promptProvider PromptProvider
 	client *anthropic.Client
 }
 
@@ -41,10 +42,10 @@ func (p *AnthropicSummaryProvider) GenerateFromInput(input string) (string, erro
 		Model:     anthropic.F(anthropic.ModelClaude3_5HaikuLatest),
 		MaxTokens: anthropic.Int(2048),
 		System:    anthropic.F([]anthropic.TextBlockParam{
-			anthropic.NewTextBlock(p2),
+			anthropic.NewTextBlock(p.promptProvider.SystemPrompt()),
 		}),
 		Messages: anthropic.F([]anthropic.MessageParam{
-			anthropic.NewUserMessage(anthropic.NewTextBlock(fmt.Sprintf(u2, input))),
+			anthropic.NewUserMessage(anthropic.NewTextBlock(fmt.Sprintf(p.promptProvider.UserPrompt(), input))),
 		}),
 	}
 
@@ -60,3 +61,8 @@ func (p *AnthropicSummaryProvider) GenerateFromInput(input string) (string, erro
 
 	return resp.Content[0].Text, nil
 }
+
+func (self *AnthropicSummaryProvider) String() string {
+	return fmt.Sprintf("anthropic-%s", self.promptProvider.String())
+}
+

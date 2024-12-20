@@ -7,6 +7,7 @@ import (
 type SummaryProvider interface {
 	Prepare() error
 	GenerateFromInput(input string) (string, error)
+	String() string
 }
 
 type SummaryProviderErrorCode int
@@ -15,12 +16,18 @@ var (
 	ErrFailedPreparation = errors.New("provider has failed to prepare")
 )
 
-func NewSummaryProvider(name string) SummaryProvider {
+type PromptProvider interface {
+	SystemPrompt() string
+	UserPrompt() string
+	String() string
+}
+
+func NewSummaryProvider(name string, promptProvider PromptProvider) SummaryProvider {
 	if name == "openai" {
-		return &OpenAiSummaryProvider{}
+		return &OpenAiSummaryProvider{promptProvider, nil}
 	}
 	if name == "claude" {
-		return &AnthropicSummaryProvider{}
+		return &AnthropicSummaryProvider{promptProvider, nil}
 	}
 	return nil
 }
