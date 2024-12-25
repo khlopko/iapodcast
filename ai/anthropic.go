@@ -1,4 +1,4 @@
-package summary
+package ai
 
 import (
 	"context"
@@ -10,16 +10,12 @@ import (
 	"github.com/anthropics/anthropic-sdk-go/option"
 )
 
-type AnthropicSummaryProvider struct {
+type AnthropicServiceProvider struct {
 	promptProvider PromptProvider
 	client *anthropic.Client
 }
 
-func NewAnthropicSummaryProvider(apiKey string) *AnthropicSummaryProvider {
-	return &AnthropicSummaryProvider{}
-}
-
-func (self *AnthropicSummaryProvider) Prepare() error {
+func (self *AnthropicServiceProvider) Prepare() error {
 	apiKey := os.Getenv("ANTHROPIC_API_KEY")
 	if apiKey == "" {
 		return ErrFailedPreparation
@@ -29,7 +25,7 @@ func (self *AnthropicSummaryProvider) Prepare() error {
 	return nil
 }
 
-func (p *AnthropicSummaryProvider) GenerateFromInput(input string) (string, error) {
+func (p *AnthropicServiceProvider) GenerateFromInput(input string) (string, error) {
 	if p.client == nil {
 		return "", errors.New("client not initialized, call Prepare() first")
 	}
@@ -62,7 +58,7 @@ func (p *AnthropicSummaryProvider) GenerateFromInput(input string) (string, erro
 	return resp.Content[0].Text, nil
 }
 
-func (self *AnthropicSummaryProvider) String() string {
+func (self *AnthropicServiceProvider) String() string {
 	return fmt.Sprintf("anthropic-%s", self.promptProvider.String())
 }
 

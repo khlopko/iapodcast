@@ -1,4 +1,4 @@
-package summary
+package ai
 
 import (
 	"bytes"
@@ -27,12 +27,12 @@ type OpenAIResponse struct {
 	} `json:"choices"`
 }
 
-type OpenAiSummaryProvider struct {
+type OpenAiServiceProvider struct {
 	promptProvider PromptProvider
 	apiKey *string
 }
 
-func (self *OpenAiSummaryProvider) Prepare() error {
+func (self *OpenAiServiceProvider) Prepare() error {
 	openAIKey := os.Getenv("OPENAI_API_KEY")
 	if openAIKey == "" {
 		return ErrFailedPreparation
@@ -41,7 +41,7 @@ func (self *OpenAiSummaryProvider) Prepare() error {
 	return nil
 }
 
-func (self *OpenAiSummaryProvider) GenerateFromInput(input string) (string, error) {
+func (self *OpenAiServiceProvider) GenerateFromInput(input string) (string, error) {
 	url := "https://api.openai.com/v1/chat/completions"
 
 	request := OpenAIRequest{
@@ -95,6 +95,6 @@ func (self *OpenAiSummaryProvider) GenerateFromInput(input string) (string, erro
 	return response.Choices[0].Message.Content, nil
 }
 
-func (self *OpenAiSummaryProvider) String() string {
+func (self *OpenAiServiceProvider) String() string {
 	return fmt.Sprintf("openai-%s", self.promptProvider.String())
 }

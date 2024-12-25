@@ -7,7 +7,9 @@ toolchain go1.22.10
 require (
 	github.com/anthropics/anthropic-sdk-go v0.2.0-alpha.7
 	github.com/joho/godotenv v1.5.1
+	github.com/sashabaranov/go-openai v1.36.0
 	github.com/schollz/progressbar/v3 v3.17.1
+	gonum.org/v1/gonum v0.15.1
 )
 
 require (
