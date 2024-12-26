@@ -61,13 +61,12 @@ func (self *YouTubeSummarizer) ProcessVideo(url string) error {
 	_, err = os.Stat(existingTranscriptionPath)	
 
 	if os.IsNotExist(err) {
-		audioPath, err := self.downloadAudio(url)
+		audioPath, err := self.downloadAudio(videoId, url)
 		if err != nil {
 			return fmt.Errorf("download failed: %v", err)
 		}
-		defer os.Remove(audioPath)
 
-		transcription, err = self.transcribeAudio(audioPath)
+		transcription, err = self.transcribeAudio(videoId, audioPath)
 		if err != nil {
 			return fmt.Errorf("transcription failed: %v", err)
 		}
@@ -100,7 +99,7 @@ func (self *YouTubeSummarizer) GetVideoIdFromUrl(url string) (string, error) {
     return "", fmt.Errorf("invalid YouTube URL or video ID: %s", url)
 }
 
-func (self *YouTubeSummarizer) downloadAudio(url string) (string, error) {
+func (self *YouTubeSummarizer) downloadAudio(videoId string, url string) (string, error) {
 	self.progress.Update("Creating download directory...")
 	if err := os.MkdirAll(self.outputDir, 0755); err != nil {
 		return "", fmt.Errorf("failed to create output directory: %v", err)
@@ -147,10 +146,23 @@ func (self *YouTubeSummarizer) downloadAudio(url string) (string, error) {
 		return "", fmt.Errorf("no output file found")
 	}
 
-	return files[0], nil
+	filePath := fmt.Sprintf("downloads/%s.wav", videoId)
+	cmd = exec.Command(
+		"ffmpeg",
+		"-i", files[0],
+		"-ar", "16000",
+		"-ac", "1",
+		"-c:a", "pcm_s16le",
+		filePath,
+	)
+	if err = cmd.Run(); err != nil {
+		return "", fmt.Errorf("failed to convert: %v", err)
+	}
+
+	return filePath, nil
 }
 
-func (self *YouTubeSummarizer) transcribeAudio(audioPath string) (string, error) {
+func (self *YouTubeSummarizer) transcribeAudio(videoId string, audioPath string) (string, error) {
 	outputFile := audioPath + ".txt"
 	outFile, err := os.Create(outputFile)
 	if err != nil {
@@ -159,11 +171,14 @@ func (self *YouTubeSummarizer) transcribeAudio(audioPath string) (string, error)
 	defer outFile.Close()
 
 	cmd := exec.Command(
-		"python3.10", "-m", "whisper",
-		"--model", "base",
-		"--output_dir", "downloads",
-		"--output_format", "txt",
-		audioPath,
+		"./whishper-cli",
+		"-np",
+		"-t", "10",
+		"-l", "auto",
+		"-m", "whisper.cpp/models/ggml-base.bin",
+		"-of", fmt.Sprintf("downloads/%s", videoId),
+		"-otxt", "true",
+		"-f", audioPath,
 	)
 	cmd.Stdout = outFile
 
@@ -177,7 +192,6 @@ func (self *YouTubeSummarizer) transcribeAudio(audioPath string) (string, error)
 		return "", fmt.Errorf("failed to read transcription file: %v", err)
 	}
 
-	os.Remove(outputFile)
 	return string(content), nil
 }
 

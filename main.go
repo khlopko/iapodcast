@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"iapodcast/ai"
 	"iapodcast/validate"
@@ -13,7 +14,9 @@ import (
 func main() {
 	godotenv.Load(".env.local")
 
-	youtubeURL := "https://youtu.be/-jtuH1H8dfI"
+	var youtubeUrl string
+	flag.StringVar(&youtubeUrl, "url", "", "")
+	flag.Parse()
 
 	providerTypes := []ai.AiServiceType{ai.OpenAiServiceType, ai.AnthropicServiceType}
 	promptProviders := ai.AllPromptProviders()
@@ -30,7 +33,7 @@ func main() {
 		evaluationProvider.Prepare()
 
 		summarizer := NewYouTubeSummarizer(evaluationProvider)
-		videoId, _ := summarizer.GetVideoIdFromUrl(youtubeURL)
+		videoId, _ := summarizer.GetVideoIdFromUrl(youtubeUrl)
 
 		evaluation := validate.TranscriptionEvaluation{
 			Provider: evaluationProvider,
@@ -58,8 +61,8 @@ func main() {
 
 				summarizer := NewYouTubeSummarizer(provider)
 
-				fmt.Println(youtubeURL)
-				if err := summarizer.ProcessVideo(youtubeURL); err != nil {
+				fmt.Println(youtubeUrl)
+				if err := summarizer.ProcessVideo(youtubeUrl); err != nil {
 					fmt.Printf("Error: %v\n", err)
 				}
 			}

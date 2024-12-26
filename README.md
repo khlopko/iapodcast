@@ -25,3 +25,29 @@ use it wisely
 it's still learning
 
 keep important for yourself
+
+# build
+
+project depends on [whishper.cpp](https://github.com/ggerganov/whisper.cpp)
+
+fantastic lib that makes transcription extremely fast
+
+to build the project, run
+
+```sh
+git submodule update
+```
+
+then follow instructions from the linked repo to
+
+- get base (multi-lang model)
+- build whishper-cli
+
+then
+
+```sh
+ln whishper.cpp/build/bin/whishper-cli whishper-cli
+go build .
+./iapodcast --url <your-url>
+```
+
